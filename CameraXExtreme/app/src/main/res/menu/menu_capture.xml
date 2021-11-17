@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+ * Copyright (C) 2021 Digital Tectonics
+ *
+ * This application is the private property of Digital Tectonics
+ * Any distribution of this software is unlawful and prohibited.
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_info"
+        android:icon="@drawable/ic_help_outline_24dp"
+        android:orderInCategory="100"
+        android:title=""
+        app:showAsAction="always" />
+</menu>
