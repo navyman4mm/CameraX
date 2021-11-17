@@ -2,5 +2,8 @@
 Pushing Camera X to the extreme
 
 
-Basic setup at this point.
+
+Notes:
+* Uses Gradle Version 4.2.2
+* Basic setup at this point.
 
