@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2021 Digital Tectonics
+ *
+ * This application is the private property of Digital Tectonics
+ * Any distribution of this software is unlawful and prohibited.
+ */
 package com.digital_tectonics.cameraxextreme
 
 import android.os.Bundle
@@ -9,12 +15,25 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import com.digital_tectonics.cameraxextreme.databinding.ActivityMainBinding
+import android.util.Log
+import androidx.activity.viewModels
+import com.digital_tectonics.cameraxextreme.extension.requestPermissionsFromUser
+import com.digital_tectonics.cameraxextreme.viewmodel.MainViewModel
 
+/**
+ * MainActivity
+ *
+ * @author Daniel Randall on 2021-11-16.
+ */
 class MainActivity : AppCompatActivity() {
+    val TAG: String = MainActivity::class.java.simpleName
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
+
+    private val sharedViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,8 +48,9 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         binding.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+            Log.d(TAG, "FAB tapped")
+//            Snackbar.make(view, R.string.photo_taken_action, Snackbar.LENGTH_LONG)
+//                .setAction("Action", null).show()
         }
     }
 
@@ -54,5 +74,28 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration)
             || super.onSupportNavigateUp()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray,
+    ) {
+        if (requestCode == REQUEST_CODE_PERMISSIONS) {
+            if (sharedViewModel.allPermissionsGranted(baseContext)) {
+                sharedViewModel.setCameraPermissionState(true)
+            } else {
+                Toast.makeText(
+                    this,
+                    "Permissions not granted by the user.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    companion object {
+        const val REQUEST_CODE_PERMISSIONS = 10
+        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
     }
 }

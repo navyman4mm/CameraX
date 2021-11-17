@@ -1,4 +1,4 @@
-package com.digital_tectonics.cameraxextreme
+package com.digital_tectonics.cameraxextreme.ui
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
+import com.digital_tectonics.cameraxextreme.R
 import com.digital_tectonics.cameraxextreme.databinding.FragmentSecondBinding
 
 /**
