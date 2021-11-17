@@ -10,7 +10,7 @@ import com.digital_tectonics.cameraxextreme.R
 import com.digital_tectonics.cameraxextreme.databinding.FragmentFirstBinding
 
 /**
- * SecondFragment
+ * FirstFragment
  *
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
@@ -18,18 +18,15 @@ class FirstFragment : Fragment() {
 
     private var _binding: FragmentFirstBinding? = null
 
-    // This property is only valid between onCreateView and
-    // onDestroyView.
+    // This property is only valid between [onCreateView] and [onDestroyView]
     private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         _binding = FragmentFirstBinding.inflate(inflater, container, false)
         return binding.root
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

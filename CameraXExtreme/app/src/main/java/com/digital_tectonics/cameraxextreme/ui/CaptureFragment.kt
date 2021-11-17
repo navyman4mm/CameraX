@@ -64,7 +64,7 @@ class CaptureFragment : Fragment(R.layout.fragment_capture) {
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentCaptureBinding.inflate(inflater, container, false)
-        // Set up the listener for take photo button
+        // Set up the listener for capture photo fab
         binding?.captureFAB?.setOnClickListener { takePhoto() }
 
         sharedViewModel.cameraPermission.observe(viewLifecycleOwner, {
