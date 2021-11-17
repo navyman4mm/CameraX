@@ -26,10 +26,10 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.fragment.app.activityViewModels
+import com.digital_tectonics.cameraxextreme.constant.FILENAME_FORMAT
 import com.digital_tectonics.cameraxextreme.extension.getOutputDirectory
 import com.digital_tectonics.cameraxextreme.extension.requestPermissionsFromUser
 import com.digital_tectonics.cameraxextreme.viewmodel.MainViewModel
-import kotlinx.android.synthetic.main.fragment_capture.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -47,16 +47,12 @@ class CaptureFragment : Fragment(R.layout.fragment_capture) {
 
     private var outputDirectory: File? = null
     private lateinit var cameraExecutor: ExecutorService
+    private var isFirstResume: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Request camera permissions
-        if (sharedViewModel.allPermissionsGranted(requireContext())) {
-            startCamera()
-        } else {
-            activity?.requestPermissionsFromUser()
-        }
+        checkCameraPermissions()
 
         outputDirectory = context?.getOutputDirectory()
 
@@ -68,8 +64,8 @@ class CaptureFragment : Fragment(R.layout.fragment_capture) {
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentCaptureBinding.inflate(inflater, container, false)
-        // Set up the listener for take photo button
-        binding?.captureCameraButton?.setOnClickListener { takePhoto() }
+        // Set up the listener for capture photo fab
+        binding?.captureFAB?.setOnClickListener { takePhoto() }
 
         sharedViewModel.cameraPermission.observe(viewLifecycleOwner, {
             if (it) {
@@ -80,10 +76,31 @@ class CaptureFragment : Fragment(R.layout.fragment_capture) {
         return binding?.root
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (isFirstResume) {
+            isFirstResume = false
+        } else {
+            if (::cameraExecutor.isInitialized && cameraExecutor.isShutdown) {
+                cameraExecutor = Executors.newSingleThreadExecutor()
+                checkCameraPermissions()
+            }
+        }
+    }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    override fun onStop() {
+        super.onStop()
+        // While this was set by Google to have it in the [onDestroy()] moving here maybe a better practice
         cameraExecutor.shutdown()
+    }
+
+
+    private fun checkCameraPermissions() {
+        if (sharedViewModel.allPermissionsGranted(requireContext())) {
+            startCamera()
+        } else {
+            activity?.requestPermissionsFromUser()
+        }
     }
 
     private fun takePhoto() {
@@ -101,8 +118,7 @@ class CaptureFragment : Fragment(R.layout.fragment_capture) {
         // Create output options object which contains file + metadata
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
-        // Set up image capture listener, which is triggered after photo has
-        // been taken
+        // Set up image capture listener, which is triggered after photo has been taken
         imageCapture.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(requireContext()),
@@ -131,7 +147,7 @@ class CaptureFragment : Fragment(R.layout.fragment_capture) {
             val preview = Preview.Builder()
                 .build()
                 .also {
-                    it.setSurfaceProvider(viewFinder.surfaceProvider)
+                    it.setSurfaceProvider(binding?.captureViewFinder?.surfaceProvider)
                 }
 
             imageCapture = ImageCapture.Builder()
@@ -146,14 +162,14 @@ class CaptureFragment : Fragment(R.layout.fragment_capture) {
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture)
-            } catch(exc: Exception) {
-                Log.e(TAG, "Use case binding failed", exc)
+                    this,
+                    cameraSelector,
+                    preview,
+                    imageCapture,
+                )
+            } catch (exception: Exception) {
+                Log.e(TAG, "Use case binding failed", exception)
             }
         }, ContextCompat.getMainExecutor(requireContext()))
-    }
-
-    companion object {
-        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
     }
 }

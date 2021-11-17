@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2021 Digital Tectonics
+ *
+ * This application is the private property of Digital Tectonics
+ * Any distribution of this software is unlawful and prohibited.
+ */
 package com.digital_tectonics.cameraxextreme.ui
 
 import android.os.Bundle
@@ -7,34 +13,33 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
 import com.digital_tectonics.cameraxextreme.R
-import com.digital_tectonics.cameraxextreme.databinding.FragmentSecondBinding
+import com.digital_tectonics.cameraxextreme.databinding.FragmentSettingsBinding
 
 /**
- * A simple [Fragment] subclass as the second destination in the navigation.
+ * SettingsFragment
+ *
+ * @author Daniel Randall on 2021-11-16.
  */
-class SecondFragment : Fragment() {
+class SettingsFragment : Fragment() {
 
-    private var _binding: FragmentSecondBinding? = null
+    private var _binding: FragmentSettingsBinding? = null
 
-    // This property is only valid between onCreateView and
-    // onDestroyView.
+    // This property is only valid between [onCreateView] and [onDestroyView]
     private val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
-        _binding = FragmentSecondBinding.inflate(inflater, container, false)
+        _binding = FragmentSettingsBinding.inflate(inflater, container, false)
         return binding.root
-
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         binding.buttonSecond.setOnClickListener {
-            findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
+//            findNavController().navigate(R.id.action_SecondFragment_to_FirstFragment)
         }
     }
 

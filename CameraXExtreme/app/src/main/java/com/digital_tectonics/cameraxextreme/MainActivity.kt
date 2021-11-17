@@ -19,6 +19,7 @@ import android.widget.Toast
 import com.digital_tectonics.cameraxextreme.databinding.ActivityMainBinding
 import android.util.Log
 import androidx.activity.viewModels
+import androidx.navigation.NavController
 import com.digital_tectonics.cameraxextreme.extension.requestPermissionsFromUser
 import com.digital_tectonics.cameraxextreme.viewmodel.MainViewModel
 
@@ -34,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private val sharedViewModel: MainViewModel by viewModels()
+    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,14 +45,14 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
 
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
+        navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
 
         binding.fab.setOnClickListener { view ->
             Log.d(TAG, "FAB tapped")
-//            Snackbar.make(view, R.string.photo_taken_action, Snackbar.LENGTH_LONG)
-//                .setAction("Action", null).show()
+            Snackbar.make(view, R.string.photo_taken_action, Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show()
         }
     }
 
@@ -65,13 +67,15 @@ class MainActivity : AppCompatActivity() {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
-            R.id.action_settings -> true
+            R.id.action_settings -> {
+                navController.navigate(R.id.SettingsFragment)
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration)
             || super.onSupportNavigateUp()
     }
