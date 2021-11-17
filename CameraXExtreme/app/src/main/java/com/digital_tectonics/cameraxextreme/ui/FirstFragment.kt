@@ -10,6 +10,8 @@ import com.digital_tectonics.cameraxextreme.R
 import com.digital_tectonics.cameraxextreme.databinding.FragmentFirstBinding
 
 /**
+ * SecondFragment
+ *
  * A simple [Fragment] subclass as the default destination in the navigation.
  */
 class FirstFragment : Fragment() {

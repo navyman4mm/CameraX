@@ -9,7 +9,13 @@
         android:id="@+id/CaptureFragment"
         android:name="com.digital_tectonics.cameraxextreme.ui.CaptureFragment"
         android:label="@string/fragment_label_capture"
-        tools:layout="@layout/fragment_capture" />
+        tools:layout="@layout/fragment_capture" >
+
+        <action
+            android:id="@+id/action_CaptureFragment_to_SecondFragment"
+            app:destination="@id/SettingsFragment" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/FirstFragment"
@@ -19,16 +25,18 @@
 
         <action
             android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
+            app:destination="@id/SettingsFragment" />
+
     </fragment>
     <fragment
-        android:id="@+id/SecondFragment"
-        android:name="com.digital_tectonics.cameraxextreme.ui.SecondFragment"
-        android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
+        android:id="@+id/SettingsFragment"
+        android:name="com.digital_tectonics.cameraxextreme.ui.SettingsFragment"
+        android:label="@string/fragment_label_settings"
+        tools:layout="@layout/fragment_settings">
 
         <action
-            android:id="@+id/action_SecondFragment_to_FirstFragment"
+            android:id="@+id/action_SettingsFragment_to_FirstFragment"
             app:destination="@id/FirstFragment" />
+
     </fragment>
 </navigation>
