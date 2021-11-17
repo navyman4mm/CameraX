@@ -13,3 +13,4 @@ package com.digital_tectonics.cameraxextreme.constant
  */
 
 const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
+const val JPG_FILE_TAG = ".jpg"
