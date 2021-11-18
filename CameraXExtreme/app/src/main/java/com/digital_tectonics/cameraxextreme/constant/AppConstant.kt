@@ -34,3 +34,5 @@ const val ANIMATION_SLOW_MILLIS = 100L
 const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
 const val JPG_FILE_TAG = ".jpg"
 const val PNG_FILE_TAG = ".png"
+
+const val IMAGE_CAPTURE_TAG = "IMAGE_CAPTURE"

@@ -17,8 +17,6 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import android.net.Uri
 import android.util.Log
-import android.util.Range
-import android.util.Rational
 import android.view.*
 import android.widget.Toast
 import androidx.camera.core.*
@@ -28,9 +26,11 @@ import androidx.fragment.app.activityViewModels
 import com.digital_tectonics.cameraxextreme.constant.FILENAME_FORMAT
 import com.digital_tectonics.cameraxextreme.constant.JPG_FILE_TAG
 import com.digital_tectonics.cameraxextreme.extension.getOutputDirectory
+import com.digital_tectonics.cameraxextreme.extension.logCameraExposureData
 import com.digital_tectonics.cameraxextreme.extension.requestPermissionsFromUser
 import com.digital_tectonics.cameraxextreme.extension.startCameraAndPreview
 import com.digital_tectonics.cameraxextreme.viewmodel.MainViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -47,7 +47,7 @@ class CaptureFragment : Fragment() {
     private var imageCapture: ImageCapture? = null
 
     private var outputDirectory: File? = null
-    private lateinit var cameraExecutor: ExecutorService
+    private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     private var isFirstResume: Boolean = true
     private var isCameraAvailable: Boolean = false
 
@@ -57,8 +57,31 @@ class CaptureFragment : Fragment() {
         checkCameraPermissions()
 
         outputDirectory = context?.getOutputDirectory()
+    }
 
-        cameraExecutor = Executors.newSingleThreadExecutor()
+    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.menu_capture, menu)
+        super.onCreateOptionsMenu(menu, menuInflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_info -> {
+                val cameraExposureData = imageCapture.logCameraExposureData(TAG)
+
+                cameraExposureData?.run {
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(R.string.camera_exposure_data_title)
+                        .setItems(this.asArray(resources)) { dialog, which ->
+                            // TODO: Allow for updates or settings?
+                        }
+                        .show()
+                }
+
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -112,7 +135,7 @@ class CaptureFragment : Fragment() {
             isFirstResume = false
         } else {
             // Check that the app still have permission to use the camera
-            if (sharedViewModel.allPermissionsGranted(requireContext()) && ::cameraExecutor.isInitialized && cameraExecutor.isShutdown) {
+            if (sharedViewModel.allPermissionsGranted(requireContext()) && cameraExecutor.isShutdown) {
                 cameraExecutor = Executors.newSingleThreadExecutor()
                 checkCameraPermissions()
             }
@@ -134,7 +157,9 @@ class CaptureFragment : Fragment() {
         }
     }
 
-
+    /**
+     * TODO: Move to Extension file
+     */
     private fun takePhoto() {
         // Get a stable reference of the modifiable image capture use case
         val imageCapture = imageCapture ?: return
@@ -150,7 +175,7 @@ class CaptureFragment : Fragment() {
         // Create output options object which contains file + metadata
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
-        logCameraExposureData()
+        imageCapture.logCameraExposureData(TAG)
 
         // Set up image capture listener, which is triggered after photo has been taken
         imageCapture.takePicture(
@@ -179,10 +204,13 @@ class CaptureFragment : Fragment() {
                 Log.d(TAG, "Sad face - This is temp")
                 startCamera()
             }
-            logCameraExposureData()
+            imageCapture.logCameraExposureData(TAG)
         }
     }
 
+    /**
+     * TODO: Remove once more testing is complete
+     */
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
 
