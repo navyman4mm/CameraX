@@ -6,11 +6,8 @@
  */
 package com.digital_tectonics.cameraxextreme.ui
 
+import android.annotation.SuppressLint
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.camera.core.ImageCapture
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.digital_tectonics.cameraxextreme.R
@@ -20,15 +17,19 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import android.net.Uri
 import android.util.Log
+import android.util.Range
+import android.util.Rational
+import android.view.*
 import android.widget.Toast
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.Preview
+import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.digital_tectonics.cameraxextreme.constant.FILENAME_FORMAT
+import com.digital_tectonics.cameraxextreme.constant.JPG_FILE_TAG
 import com.digital_tectonics.cameraxextreme.extension.getOutputDirectory
 import com.digital_tectonics.cameraxextreme.extension.requestPermissionsFromUser
+import com.digital_tectonics.cameraxextreme.extension.startCameraAndPreview
 import com.digital_tectonics.cameraxextreme.viewmodel.MainViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -38,7 +39,7 @@ import java.util.*
  *
  * @author Daniel Randall on 2021-11-16.
  */
-class CaptureFragment : Fragment(R.layout.fragment_capture) {
+class CaptureFragment : Fragment() {
     val TAG: String = CaptureFragment::class.java.simpleName
 
     private val sharedViewModel: MainViewModel by activityViewModels()
@@ -48,6 +49,7 @@ class CaptureFragment : Fragment(R.layout.fragment_capture) {
     private var outputDirectory: File? = null
     private lateinit var cameraExecutor: ExecutorService
     private var isFirstResume: Boolean = true
+    private var isCameraAvailable: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,21 +61,49 @@ class CaptureFragment : Fragment(R.layout.fragment_capture) {
         cameraExecutor = Executors.newSingleThreadExecutor()
     }
 
+    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.menu_capture, menu)
+        super.onCreateOptionsMenu(menu, menuInflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_info -> {
+                logCameraExposureData()
+                // TODO: Display a dialog with Exposure data
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentCaptureBinding.inflate(inflater, container, false)
+        if (isCameraAvailable) {
+            startCameraAndPreviewRunning()
+        }
+
+        setHasOptionsMenu(true)
+
+        return binding?.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
         // Set up the listener for capture photo fab
         binding?.captureFAB?.setOnClickListener { takePhoto() }
 
         sharedViewModel.cameraPermission.observe(viewLifecycleOwner, {
-            if (it) {
-                startCamera()
+            Log.d(TAG, "Camera Permission: $it")
+            isCameraAvailable = it
+            if (isCameraAvailable) {
+                startCameraAndPreviewRunning()
             }
         })
-
-        return binding?.root
     }
 
     override fun onResume() {
@@ -81,7 +111,8 @@ class CaptureFragment : Fragment(R.layout.fragment_capture) {
         if (isFirstResume) {
             isFirstResume = false
         } else {
-            if (::cameraExecutor.isInitialized && cameraExecutor.isShutdown) {
+            // Check that the app still have permission to use the camera
+            if (sharedViewModel.allPermissionsGranted(requireContext()) && ::cameraExecutor.isInitialized && cameraExecutor.isShutdown) {
                 cameraExecutor = Executors.newSingleThreadExecutor()
                 checkCameraPermissions()
             }
@@ -97,11 +128,12 @@ class CaptureFragment : Fragment(R.layout.fragment_capture) {
 
     private fun checkCameraPermissions() {
         if (sharedViewModel.allPermissionsGranted(requireContext())) {
-            startCamera()
+            isCameraAvailable = true
         } else {
             activity?.requestPermissionsFromUser()
         }
     }
+
 
     private fun takePhoto() {
         // Get a stable reference of the modifiable image capture use case
@@ -112,11 +144,13 @@ class CaptureFragment : Fragment(R.layout.fragment_capture) {
             outputDirectory,
             SimpleDateFormat(
                 FILENAME_FORMAT, Locale.US
-            ).format(System.currentTimeMillis()) + ".jpg"
+            ).format(System.currentTimeMillis()) + JPG_FILE_TAG
         )
 
         // Create output options object which contains file + metadata
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+
+        logCameraExposureData()
 
         // Set up image capture listener, which is triggered after photo has been taken
         imageCapture.takePicture(
@@ -134,6 +168,19 @@ class CaptureFragment : Fragment(R.layout.fragment_capture) {
                     Log.d(TAG, msg)
                 }
             })
+    }
+
+    private fun startCameraAndPreviewRunning() {
+        binding?.captureFAB?.isVisible = true
+        binding?.captureViewFinder?.run {
+            Log.d(TAG, "Capture Preview is present")
+            imageCapture = context.startCameraAndPreview(this, this@CaptureFragment)
+            if (imageCapture == null) {
+                Log.d(TAG, "Sad face - This is temp")
+                startCamera()
+            }
+            logCameraExposureData()
+        }
     }
 
     private fun startCamera() {
@@ -171,5 +218,21 @@ class CaptureFragment : Fragment(R.layout.fragment_capture) {
                 Log.e(TAG, "Use case binding failed", exception)
             }
         }, ContextCompat.getMainExecutor(requireContext()))
+    }
+
+    @SuppressLint("RestrictedApi", "UnsafeOptInUsageError")
+    private fun logCameraExposureData() {
+        imageCapture?.camera?.run {
+            Log.d(TAG, "Camera Information is available")
+            this.cameraInfo.exposureState.run {
+                Log.d(TAG, "Camera ExposureCompensationIndex: ${this.exposureCompensationIndex}")
+                Log.d(TAG, "Camera ExposureCompensationRange: ${this.exposureCompensationRange}")
+                Log.d(TAG, "Camera ExposureCompensationStep: ${this.exposureCompensationStep}")
+                Log.d(
+                    TAG,
+                    "Camera ExposureCompensationSupported: ${this.isExposureCompensationSupported}"
+                )
+            }
+        }
     }
 }
