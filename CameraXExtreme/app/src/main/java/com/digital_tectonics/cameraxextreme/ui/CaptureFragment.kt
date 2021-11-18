@@ -84,22 +84,6 @@ class CaptureFragment : Fragment() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
-        menuInflater.inflate(R.menu.menu_capture, menu)
-        super.onCreateOptionsMenu(menu, menuInflater)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_info -> {
-                logCameraExposureData()
-                // TODO: Display a dialog with Exposure data
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -147,7 +131,6 @@ class CaptureFragment : Fragment() {
         // While this was set by Google to have it in the [onDestroy()] moving here maybe a better practice
         cameraExecutor.shutdown()
     }
-
 
     private fun checkCameraPermissions() {
         if (sharedViewModel.allPermissionsGranted(requireContext())) {
