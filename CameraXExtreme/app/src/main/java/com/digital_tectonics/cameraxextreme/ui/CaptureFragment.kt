@@ -6,6 +6,7 @@
  */
 package com.digital_tectonics.cameraxextreme.ui
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -77,6 +78,22 @@ class CaptureFragment : Fragment() {
                         .show()
                 }
 
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.menu_capture, menu)
+        super.onCreateOptionsMenu(menu, menuInflater)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_info -> {
+                logCameraExposureData()
+                // TODO: Display a dialog with Exposure data
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -229,5 +246,21 @@ class CaptureFragment : Fragment() {
                 Log.e(TAG, "Use case binding failed", exception)
             }
         }, ContextCompat.getMainExecutor(requireContext()))
+    }
+
+    @SuppressLint("RestrictedApi", "UnsafeOptInUsageError")
+    private fun logCameraExposureData() {
+        imageCapture?.camera?.run {
+            Log.d(TAG, "Camera Information is available")
+            this.cameraInfo.exposureState.run {
+                Log.d(TAG, "Camera ExposureCompensationIndex: ${this.exposureCompensationIndex}")
+                Log.d(TAG, "Camera ExposureCompensationRange: ${this.exposureCompensationRange}")
+                Log.d(TAG, "Camera ExposureCompensationStep: ${this.exposureCompensationStep}")
+                Log.d(
+                    TAG,
+                    "Camera ExposureCompensationSupported: ${this.isExposureCompensationSupported}"
+                )
+            }
+        }
     }
 }
