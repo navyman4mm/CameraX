@@ -7,6 +7,16 @@
 package com.digital_tectonics.cameraxextreme.extension
 
 import android.content.Context
+import android.util.Log
+import android.view.OrientationEventListener
+import android.view.Surface
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import com.digital_tectonics.cameraxextreme.R
 import java.io.File
 

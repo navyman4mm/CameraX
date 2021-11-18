@@ -29,7 +29,7 @@ class MainViewModel : ViewModel() {
     }
 
     fun setCameraPermissionState(hasPermission: Boolean = false) {
-        _cameraPermission.value = hasPermission
+        _cameraPermission.postValue(hasPermission)
     }
 
     companion object {

@@ -13,4 +13,10 @@
     <!-- Capture Strings -->
     <string name="photo_taken_action">Photo Taken</string>
     <string name="take_photo_button">Take Photo</string>
+    <!-- Camera Data -->
+    <string name="camera_exposure_data_title">Camera Exposure</string>
+    <string name="camera_exposure_compensation_supported">Exposure Compensation Supported: %s</string>
+    <string name="camera_exposure_compensation_index">Exposure Compensation Index: %s</string>
+    <string name="camera_exposure_compensation_range">Exposure Compensation Range: %s</string>
+    <string name="camera_exposure_compensation_step_size">Exposure Compensation Step Size: %s</string>
 </resources>

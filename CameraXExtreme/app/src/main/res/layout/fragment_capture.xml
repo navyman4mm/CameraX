@@ -1,4 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?><!--
+ * Copyright (C) 2021 Digital Tectonics
+ *
+ * This application is the private property of Digital Tectonics
+ * Any distribution of this software is unlawful and prohibited.
+-->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -20,6 +25,7 @@
         android:layout_marginBottom="@dimen/dimen_common_margin"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/ic_camera_shutter_24dp" />
+        app:srcCompat="@drawable/ic_camera_shutter_24dp"
+        android:contentDescription="@string/take_photo_button" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
