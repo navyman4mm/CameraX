@@ -116,3 +116,14 @@ fun ImageCapture?.logCameraExposureData(tag: String = IMAGE_CAPTURE_TAG): Camera
         null
     }
 }
+
+@SuppressLint("RestrictedApi", "UnsafeOptInUsageError")
+fun ImageCapture?.setCameraExposureToMax(tag: String = IMAGE_CAPTURE_TAG) {
+    if (this != null) {
+        val cameraExposureData = this.logCameraExposureData(tag)
+        if (cameraExposureData != null && cameraExposureData.cameraExposureCompensationSupported) {
+            this.camera?.cameraControl?.setExposureCompensationIndex(cameraExposureData.cameraExposureCompensationRange.upper)
+            Log.d(tag, "Exposure Range set: ${cameraExposureData.cameraExposureCompensationRange.upper}")
+        }
+    }
+}

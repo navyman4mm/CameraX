@@ -25,10 +25,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.digital_tectonics.cameraxextreme.constant.FILENAME_FORMAT
 import com.digital_tectonics.cameraxextreme.constant.JPG_FILE_TAG
-import com.digital_tectonics.cameraxextreme.extension.getOutputDirectory
-import com.digital_tectonics.cameraxextreme.extension.logCameraExposureData
-import com.digital_tectonics.cameraxextreme.extension.requestPermissionsFromUser
-import com.digital_tectonics.cameraxextreme.extension.startCameraAndPreview
+import com.digital_tectonics.cameraxextreme.extension.*
 import com.digital_tectonics.cameraxextreme.viewmodel.MainViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.text.SimpleDateFormat
@@ -64,6 +61,7 @@ class CaptureFragment : Fragment() {
         super.onCreateOptionsMenu(menu, menuInflater)
     }
 
+    @SuppressLint("RestrictedApi", "UnsafeOptInUsageError")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_info -> {
@@ -78,6 +76,10 @@ class CaptureFragment : Fragment() {
                         .show()
                 }
 
+                true
+            }
+            R.id.action_exposure_max -> {
+                imageCapture.setCameraExposureToMax(TAG)
                 true
             }
             else -> super.onOptionsItemSelected(item)
