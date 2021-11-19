@@ -48,14 +48,16 @@ dependencies {
     implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
     implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
 
-    // Camera X
+    /* Camera X */
     def camerax_version = "1.0.2"
-    // CameraX core library using camera2 implementation
+    // CameraX core library - Testing this for Exposure options
+    implementation "androidx.camera:camera-core:$camerax_version"
+    // CameraX core library - Using camera2 implementation
     implementation "androidx.camera:camera-camera2:$camerax_version"
     // CameraX Lifecycle Library
     implementation "androidx.camera:camera-lifecycle:$camerax_version"
     // CameraX View class - For Build Tools 30- use 27
-    implementation "androidx.camera:camera-view:1.0.0-alpha27"
+    implementation "androidx.camera:camera-view:1.0.0-alpha28"
 
     // Testing
     testImplementation 'junit:junit:4.+'
