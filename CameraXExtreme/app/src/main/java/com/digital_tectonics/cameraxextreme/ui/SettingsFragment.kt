@@ -11,16 +11,14 @@ import android.content.Context
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.camera.camera2.internal.compat.CameraCharacteristicsCompat
-import androidx.camera.camera2.internal.compat.CameraManagerCompat
 import androidx.fragment.app.activityViewModels
 import com.digital_tectonics.cameraxextreme.R
 import com.digital_tectonics.cameraxextreme.databinding.FragmentSettingsBinding
+import com.digital_tectonics.cameraxextreme.extension.getResolutionData
 import com.digital_tectonics.cameraxextreme.extension.requestPermissionsFromUser
 import com.digital_tectonics.cameraxextreme.viewmodel.MainViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -50,6 +48,14 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.settingsSetCameraResolutionButton.setOnClickListener {
+            if (sharedViewModel.allPermissionsGranted(requireContext())) {
+                displayCameraResolutionOptions()
+            } else {
+                activity?.requestPermissionsFromUser()
+            }
+        }
+
         binding.settingsRawSupportTestButton.setOnClickListener {
             if (sharedViewModel.allPermissionsGranted(requireContext())) {
                 checkCamerasForRAWSupport()
@@ -66,15 +72,49 @@ class SettingsFragment : Fragment() {
 
     @SuppressLint("ServiceCast", "RestrictedApi")
     private fun checkCamerasForRAWSupport() {
-        val cameraManager: CameraManager = activity?.applicationContext?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val cameraManager: CameraManager =
+            activity?.applicationContext?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
         var tempCameraCharacteristics: CameraCharacteristics?
         for (cameraId in cameraManager.cameraIdList) {
             tempCameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId)
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.raw_test_title, cameraId))
-                .setMessage("Supports RAW: ${tempCameraCharacteristics.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES)?.contains(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_RAW)}")
+                .setMessage(
+                    "Supports RAW: ${
+                        tempCameraCharacteristics.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES)
+                            ?.contains(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_RAW)
+                    }"
+                )
                 .show()
         }
+    }
+
+    private fun displayCameraResolutionOptions() {
+        val cameraData = sharedViewModel.cameraSetupData.value
+        val resolutionData = cameraData?.camera.getResolutionData(
+            requireContext(),
+            TAG,
+        )?.let { sizeArray ->
+            sizeArray.map { it.toString() }.toTypedArray()
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.set_camera_resolution_label)
+            // Single-choice items (initialized with checked item)
+            .setSingleChoiceItems(
+                resolutionData,
+                resolutionData?.lastIndex ?: 0,
+            ) { dialog, which ->
+                // Respond to item chosen
+            }
+            .setNeutralButton(resources.getString(android.R.string.cancel)) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setPositiveButton(resources.getString(android.R.string.ok)) { dialog, which ->
+                // TODO: Update the Shared viewmodel
+
+            }
+            .show()
     }
 }

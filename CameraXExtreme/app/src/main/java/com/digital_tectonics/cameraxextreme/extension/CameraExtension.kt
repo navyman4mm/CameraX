@@ -13,10 +13,14 @@ import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.hardware.camera2.params.StreamConfigurationMap
+import android.os.Build
 import android.util.Log
+import android.util.Size
 import android.view.OrientationEventListener
 import android.view.Surface
+import androidx.annotation.RequiresApi
 import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY
@@ -27,6 +31,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.digital_tectonics.cameraxextreme.constant.IMAGE_CAPTURE_TAG
 import com.digital_tectonics.cameraxextreme.model.CameraExposureData
+import com.digital_tectonics.cameraxextreme.model.CameraXSetupData
 
 /**
  * CameraExtension
@@ -35,17 +40,19 @@ import com.digital_tectonics.cameraxextreme.model.CameraExposureData
  */
 
 /**
- *
+ * @param updateMethod [Lamba] with [CameraXSetupData]
  * @return [ImageCapture] optional
  */
 @SuppressLint("UnsafeOptInUsageError")
 fun Context?.startCameraAndPreview(
     captureViewFinder: PreviewView,
     lifecycleOwner: LifecycleOwner,
+    updateMethod: (CameraXSetupData) -> Unit,
     imageCapture: ImageCapture = ImageCapture.Builder()
         .setCaptureMode(CAPTURE_MODE_MAXIMIZE_QUALITY).build(),
-): ImageCapture? {
-    return if (this != null) {
+): CameraXSetupData {
+    var cameraSetup = CameraXSetupData(imageCapture)
+    if (this != null) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
         cameraProviderFuture.addListener(Runnable {
@@ -85,32 +92,67 @@ fun Context?.startCameraAndPreview(
                     preview,
                     imageCapture,
                 )
+
+                updateMethod(
+                    CameraXSetupData(
+                        imageCapture,
+                        camera,
+                        this.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+                    )
+                )
                 /* Testing: */
-                val cameraManager = this.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-                val characteristics = cameraManager.getCameraCharacteristics(Camera2CameraInfo.from(camera.cameraInfo).cameraId)
-                val configs: StreamConfigurationMap? = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-
-                // Testing Resolutions
-                val imageAnalysisSizes = configs?.getOutputSizes(ImageFormat.YUV_420_888)
-                imageAnalysisSizes?.forEach {
-                    Log.d(lifecycleOwner.toString(), "Image capturing YUV_420_888 available output size: $it")
-                }
-
-                // Preview Size Testing
-                configs?.getOutputSizes(SurfaceTexture::class.java)?.forEach {
-                    Log.d(lifecycleOwner.toString(), "Preview available output size: $it")
-                }
+                camera.getResolutionData(this, lifecycleOwner.toString())
             } catch (exception: Exception) {
                 Log.e(lifecycleOwner.toString(), "Use case binding failed", exception)
             }
         }, ContextCompat.getMainExecutor(this))
-        // Return
-        imageCapture
+    }
+
+    return cameraSetup
+}
+
+@SuppressLint("UnsafeOptInUsageError")
+fun Camera?.getResolutionData(
+    context: Context,
+    tag: String = IMAGE_CAPTURE_TAG,
+    isLoggingOn: Boolean = true,
+): Array<out Size>? {
+    return if (this != null) {
+        /* Testing: */
+        val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+        val characteristics =
+            cameraManager.getCameraCharacteristics(Camera2CameraInfo.from(this.cameraInfo).cameraId)
+        val configs: StreamConfigurationMap? =
+            characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+
+        // Testing Resolutions
+        val imageAnalysisSizes = configs?.getOutputSizes(ImageFormat.YUV_420_888)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Log.d(tag, "API 23+")
+            logHighRes(configs, tag)
+        }
+
+        if (isLoggingOn) {
+            imageAnalysisSizes?.forEach {
+                Log.d(tag, "YUV_420_888 available output size: $it")
+            }
+
+            // Preview Size Testing
+            configs?.getOutputSizes(SurfaceTexture::class.java)?.forEach {
+                Log.d(tag, "Preview available output size: $it")
+            }
+        }
+
+        imageAnalysisSizes
     } else {
         null
     }
 }
 
+/**
+ * TODO: Review to see if these need to be retained
+ */
 @SuppressLint("RestrictedApi", "UnsafeOptInUsageError")
 fun ImageCapture?.logCameraExposureData(tag: String = IMAGE_CAPTURE_TAG): CameraExposureData? {
     return if (this != null) {
@@ -139,6 +181,9 @@ fun ImageCapture?.logCameraExposureData(tag: String = IMAGE_CAPTURE_TAG): Camera
     }
 }
 
+/**
+ * TODO: Review to see if these need to be retained
+ */
 @SuppressLint("RestrictedApi", "UnsafeOptInUsageError")
 fun ImageCapture?.setCameraExposureToMax(tag: String = IMAGE_CAPTURE_TAG) {
     if (this != null) {
@@ -147,5 +192,18 @@ fun ImageCapture?.setCameraExposureToMax(tag: String = IMAGE_CAPTURE_TAG) {
             this.camera?.cameraControl?.setExposureCompensationIndex(cameraExposureData.cameraExposureCompensationRange.upper)
             Log.d(tag, "Exposure Range set: ${cameraExposureData.cameraExposureCompensationRange.upper}")
         }
+    }
+}
+
+/**
+ * Get a list of supported high resolution sizes, which cannot operate at full BURST_CAPTURE rate
+ * i.e. capture rates at 20 FPS or less
+ */
+@RequiresApi(Build.VERSION_CODES.M)
+private fun logHighRes(configs: StreamConfigurationMap?, tag: String = IMAGE_CAPTURE_TAG) {
+    val imageData = configs?.getHighResolutionOutputSizes(ImageFormat.YUV_420_888)
+
+    imageData?.forEach {
+        Log.d(tag, "YUV_420_888 available High Resolution output size: $it")
     }
 }
