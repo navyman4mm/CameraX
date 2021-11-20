@@ -19,4 +19,7 @@
     <string name="camera_exposure_compensation_index">Exposure Compensation Index: %s</string>
     <string name="camera_exposure_compensation_range">Exposure Compensation Range: %s</string>
     <string name="camera_exposure_compensation_step_size">Exposure Compensation Step Size: %s</string>
+    <!-- Settings -->
+    <string name="raw_test_title">RAW Camera: %s</string>
+    <string name="raw_test_label">Validate Raw Support</string>
 </resources>

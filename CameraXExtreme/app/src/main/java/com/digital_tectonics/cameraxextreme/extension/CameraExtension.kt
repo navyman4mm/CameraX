@@ -8,9 +8,15 @@ package com.digital_tectonics.cameraxextreme.extension
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.ImageFormat
+import android.graphics.SurfaceTexture
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
+import android.hardware.camera2.params.StreamConfigurationMap
 import android.util.Log
 import android.view.OrientationEventListener
 import android.view.Surface
+import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY
@@ -32,6 +38,7 @@ import com.digital_tectonics.cameraxextreme.model.CameraExposureData
  *
  * @return [ImageCapture] optional
  */
+@SuppressLint("UnsafeOptInUsageError")
 fun Context?.startCameraAndPreview(
     captureViewFinder: PreviewView,
     lifecycleOwner: LifecycleOwner,
@@ -72,12 +79,27 @@ fun Context?.startCameraAndPreview(
                 cameraProvider.unbindAll()
 
                 // Bind use cases to camera - Utilizing the Back Camera only
-                cameraProvider.bindToLifecycle(
+                val camera = cameraProvider.bindToLifecycle(
                     lifecycleOwner,
                     CameraSelector.DEFAULT_BACK_CAMERA,
                     preview,
                     imageCapture,
                 )
+                /* Testing: */
+                val cameraManager = this.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+                val characteristics = cameraManager.getCameraCharacteristics(Camera2CameraInfo.from(camera.cameraInfo).cameraId)
+                val configs: StreamConfigurationMap? = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+
+                // Testing Resolutions
+                val imageAnalysisSizes = configs?.getOutputSizes(ImageFormat.YUV_420_888)
+                imageAnalysisSizes?.forEach {
+                    Log.d(lifecycleOwner.toString(), "Image capturing YUV_420_888 available output size: $it")
+                }
+
+                // Preview Size Testing
+                configs?.getOutputSizes(SurfaceTexture::class.java)?.forEach {
+                    Log.d(lifecycleOwner.toString(), "Preview available output size: $it")
+                }
             } catch (exception: Exception) {
                 Log.e(lifecycleOwner.toString(), "Use case binding failed", exception)
             }
