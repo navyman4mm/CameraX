@@ -43,7 +43,6 @@ import com.digital_tectonics.cameraxextreme.model.CameraXSetupData
  * @param updateMethod [Lamba] with [CameraXSetupData]
  * @return [ImageCapture] optional
  */
-@SuppressLint("UnsafeOptInUsageError")
 fun Context?.startCameraAndPreview(
     captureViewFinder: PreviewView,
     lifecycleOwner: LifecycleOwner,
@@ -51,7 +50,6 @@ fun Context?.startCameraAndPreview(
     imageCapture: ImageCapture = ImageCapture.Builder()
         .setCaptureMode(CAPTURE_MODE_MAXIMIZE_QUALITY).build(),
 ): CameraXSetupData {
-    var cameraSetup = CameraXSetupData(imageCapture)
     if (this != null) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
@@ -108,7 +106,7 @@ fun Context?.startCameraAndPreview(
         }, ContextCompat.getMainExecutor(this))
     }
 
-    return cameraSetup
+    return CameraXSetupData(imageCapture)
 }
 
 @SuppressLint("UnsafeOptInUsageError")
