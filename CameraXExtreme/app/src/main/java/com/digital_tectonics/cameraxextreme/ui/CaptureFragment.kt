@@ -26,6 +26,7 @@ import androidx.fragment.app.activityViewModels
 import com.digital_tectonics.cameraxextreme.constant.FILENAME_FORMAT
 import com.digital_tectonics.cameraxextreme.constant.JPG_FILE_TAG
 import com.digital_tectonics.cameraxextreme.extension.*
+import com.digital_tectonics.cameraxextreme.model.CameraXSetupData
 import com.digital_tectonics.cameraxextreme.viewmodel.MainViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.text.SimpleDateFormat
@@ -41,7 +42,7 @@ class CaptureFragment : Fragment() {
 
     private val sharedViewModel: MainViewModel by activityViewModels()
     private var binding: FragmentCaptureBinding? = null
-    private var imageCapture: ImageCapture? = null
+    private var cameraSetup = CameraXSetupData()
 
     private var outputDirectory: File? = null
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
@@ -65,7 +66,7 @@ class CaptureFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_info -> {
-                val cameraExposureData = imageCapture.logCameraExposureData(TAG)
+                val cameraExposureData = cameraSetup.logCameraExposureData(TAG)
 
                 cameraExposureData?.run {
                     MaterialAlertDialogBuilder(requireContext())
@@ -79,7 +80,7 @@ class CaptureFragment : Fragment() {
                 true
             }
             R.id.action_exposure_max -> {
-                imageCapture.setCameraExposureToMax(TAG)
+                cameraSetup.imageCapture.setCameraExposureToMax(TAG)
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -112,6 +113,11 @@ class CaptureFragment : Fragment() {
             if (isCameraAvailable) {
                 startCameraAndPreviewRunning()
             }
+        })
+
+        sharedViewModel.cameraSetupData.observe(viewLifecycleOwner, {
+            cameraSetup = it
+            cameraSetup.logCameraExposureData(TAG)
         })
     }
 
@@ -147,7 +153,7 @@ class CaptureFragment : Fragment() {
      */
     private fun takePhoto() {
         // Get a stable reference of the modifiable image capture use case
-        val imageCapture = imageCapture ?: return
+        val imageCapture = cameraSetup.imageCapture ?: return
 
         // Create time-stamped output file to hold the image
         val photoFile = File(
@@ -160,7 +166,7 @@ class CaptureFragment : Fragment() {
         // Create output options object which contains file + metadata
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
 
-        imageCapture.logCameraExposureData(TAG)
+        cameraSetup.logCameraExposureData(TAG)
 
         // Set up image capture listener, which is triggered after photo has been taken
         imageCapture.takePicture(
@@ -184,12 +190,11 @@ class CaptureFragment : Fragment() {
         binding?.captureFAB?.isVisible = true
         binding?.captureViewFinder?.run {
             Log.d(TAG, "Capture Preview is present")
-            imageCapture = context.startCameraAndPreview(this, this@CaptureFragment)
-            if (imageCapture == null) {
-                Log.d(TAG, "Sad face - This is temp")
-                startCamera()
-            }
-            imageCapture.logCameraExposureData(TAG)
+            context.startCameraAndPreview(
+                this,
+                this@CaptureFragment,
+                { data: CameraXSetupData -> sharedViewModel.setupCameraXData(data) },
+            )
         }
     }
 
@@ -210,7 +215,7 @@ class CaptureFragment : Fragment() {
                     it.setSurfaceProvider(binding?.captureViewFinder?.surfaceProvider)
                 }
 
-            imageCapture = ImageCapture.Builder()
+            cameraSetup.imageCapture = ImageCapture.Builder()
                 .build()
 
             // Select back camera as a default
@@ -225,27 +230,11 @@ class CaptureFragment : Fragment() {
                     this,
                     cameraSelector,
                     preview,
-                    imageCapture,
+                    cameraSetup.imageCapture,
                 )
             } catch (exception: Exception) {
                 Log.e(TAG, "Use case binding failed", exception)
             }
         }, ContextCompat.getMainExecutor(requireContext()))
-    }
-
-    @SuppressLint("RestrictedApi", "UnsafeOptInUsageError")
-    private fun logCameraExposureData() {
-        imageCapture?.camera?.run {
-            Log.d(TAG, "Camera Information is available")
-            this.cameraInfo.exposureState.run {
-                Log.d(TAG, "Camera ExposureCompensationIndex: ${this.exposureCompensationIndex}")
-                Log.d(TAG, "Camera ExposureCompensationRange: ${this.exposureCompensationRange}")
-                Log.d(TAG, "Camera ExposureCompensationStep: ${this.exposureCompensationStep}")
-                Log.d(
-                    TAG,
-                    "Camera ExposureCompensationSupported: ${this.isExposureCompensationSupported}"
-                )
-            }
-        }
     }
 }

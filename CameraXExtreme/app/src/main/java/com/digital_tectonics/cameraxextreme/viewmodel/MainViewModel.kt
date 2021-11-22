@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.digital_tectonics.cameraxextreme.model.CameraXSetupData
 
 /**
  * MainViewModel
@@ -23,6 +24,8 @@ class MainViewModel : ViewModel() {
 
     private val _cameraPermission: MutableLiveData<Boolean> = MutableLiveData()
     val cameraPermission: LiveData<Boolean> get() = _cameraPermission
+    private val _cameraSetupData: MutableLiveData<CameraXSetupData> = MutableLiveData(CameraXSetupData())
+    val cameraSetupData: LiveData<CameraXSetupData> get() = _cameraSetupData
 
     fun allPermissionsGranted(context: Context) = REQUIRED_PERMISSIONS.all { item ->
         ContextCompat.checkSelfPermission(context, item) == PackageManager.PERMISSION_GRANTED
@@ -30,6 +33,10 @@ class MainViewModel : ViewModel() {
 
     fun setCameraPermissionState(hasPermission: Boolean = false) {
         _cameraPermission.postValue(hasPermission)
+    }
+
+    fun setupCameraXData(cameraXSetupData: CameraXSetupData) {
+        _cameraSetupData.postValue(cameraXSetupData)
     }
 
     companion object {
