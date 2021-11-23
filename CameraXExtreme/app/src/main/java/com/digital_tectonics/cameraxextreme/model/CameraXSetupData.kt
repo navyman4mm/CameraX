@@ -7,7 +7,9 @@
 package com.digital_tectonics.cameraxextreme.model
 
 import android.annotation.SuppressLint
+import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
+import android.hardware.camera2.params.StreamConfigurationMap
 import android.util.Log
 import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.core.Camera
@@ -15,7 +17,9 @@ import androidx.camera.core.ImageCapture
 import com.digital_tectonics.cameraxextreme.constant.IMAGE_CAPTURE_TAG
 
 /**
- * CameraXSetupData
+ * CameraXSetupData - Designed to provide a centralized location for critical Camera data, while
+ * making the app more testable. This increases testability comes via not having the individual elements
+ * held within a context.
  * TODO: Look to switch this to use val's
  *
  * @author Daniel Randall on 2021-11-19.
