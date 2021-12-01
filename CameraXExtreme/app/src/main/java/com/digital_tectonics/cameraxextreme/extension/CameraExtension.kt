@@ -20,18 +20,19 @@ import android.view.OrientationEventListener
 import android.view.Surface
 import androidx.annotation.RequiresApi
 import androidx.camera.camera2.interop.Camera2CameraInfo
-import androidx.camera.core.Camera
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture
+import androidx.camera.core.*
 import androidx.camera.core.ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY
-import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import com.digital_tectonics.cameraxextreme.constant.AUTO_FOCUS_INTERVAL
+import com.digital_tectonics.cameraxextreme.constant.FLOAT_HALF
+import com.digital_tectonics.cameraxextreme.constant.FLOAT_ONE
 import com.digital_tectonics.cameraxextreme.constant.IMAGE_CAPTURE_TAG
 import com.digital_tectonics.cameraxextreme.model.CameraExposureData
 import com.digital_tectonics.cameraxextreme.model.CameraXSetupData
+import java.util.concurrent.TimeUnit
 
 /**
  * CameraExtension
@@ -49,6 +50,28 @@ fun Context?.startCameraAndPreview(
     updateMethod: (CameraXSetupData) -> Unit,
     imageCapture: ImageCapture = ImageCapture.Builder()
         .setCaptureMode(CAPTURE_MODE_MAXIMIZE_QUALITY).build(),
+): CameraXSetupData {
+    return startCameraAndPreview(
+        captureViewFinder,
+        lifecycleOwner,
+        updateMethod,
+        imageCapture,
+        isAutoFocusEnabled = false,
+    )
+}
+
+/**
+ * @param updateMethod [Lamba] with [CameraXSetupData]
+ * @return [ImageCapture] optional
+ */
+fun Context?.startCameraAndPreview(
+    captureViewFinder: PreviewView,
+    lifecycleOwner: LifecycleOwner,
+    updateMethod: (CameraXSetupData) -> Unit,
+    imageCapture: ImageCapture = ImageCapture.Builder()
+        .setCaptureMode(CAPTURE_MODE_MAXIMIZE_QUALITY).build(),
+    isAutoFocusEnabled: Boolean = true,
+    autoFocusInterval: Long = AUTO_FOCUS_INTERVAL,
 ): CameraXSetupData {
     if (this != null) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
@@ -98,6 +121,27 @@ fun Context?.startCameraAndPreview(
                         this.getSystemService(Context.CAMERA_SERVICE) as CameraManager
                     )
                 )
+                // Auto Focus Testing
+                if (isAutoFocusEnabled) {
+                    captureViewFinder.afterViewMeasured {
+                        // Generate a center point for the focus to occur
+                        val autoFocusPoint =
+                            SurfaceOrientedMeteringPointFactory(FLOAT_ONE, FLOAT_ONE)
+                                .createPoint(FLOAT_HALF, FLOAT_HALF)
+                        try {
+                            camera.cameraControl.startFocusAndMetering(FocusMeteringAction.Builder(
+                                autoFocusPoint,
+                                FocusMeteringAction.FLAG_AF
+                            ).apply {
+                                // Start auto-focusing after 2 seconds
+                                setAutoCancelDuration(autoFocusInterval, TimeUnit.SECONDS)
+                            }.build()
+                            )
+                        } catch (exception: CameraInfoUnavailableException) {
+                            Log.d(lifecycleOwner.toString(), "Camera not available", exception)
+                        }
+                    }
+                }
                 /* Testing: */
                 camera.getResolutionData(this, lifecycleOwner.toString())
             } catch (exception: Exception) {
