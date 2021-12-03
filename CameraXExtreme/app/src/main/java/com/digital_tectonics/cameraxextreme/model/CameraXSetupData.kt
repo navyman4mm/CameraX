@@ -14,6 +14,7 @@ import android.util.Log
 import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.core.Camera
 import androidx.camera.core.ImageCapture
+import com.digital_tectonics.cameraxextreme.constant.ExposureLevel
 import com.digital_tectonics.cameraxextreme.constant.IMAGE_CAPTURE_TAG
 
 /**
@@ -52,6 +53,29 @@ data class CameraXSetupData(
         }
 
         return cameraExposureData
+    }
+
+    @SuppressLint("UnsafeOptInUsageError")
+    fun setCameraExposureToValue(
+        exposureLevel: ExposureLevel = ExposureLevel.NETURAL,
+        tag: String = IMAGE_CAPTURE_TAG,
+    ) {
+        val cameraExposureData = this.logCameraExposureData(tag)
+        if (cameraExposureData != null && cameraExposureData.cameraExposureCompensationSupported) {
+            val exposureValue = when (exposureLevel) {
+                ExposureLevel.DARK_MAX -> cameraExposureData.cameraExposureCompensationRange.lower
+                ExposureLevel.LIGHT_MAX -> cameraExposureData.cameraExposureCompensationRange.upper
+                ExposureLevel.DARK_STEP -> {
+                    cameraExposureData.cameraExposureCompensationIndex - cameraExposureData.cameraExposureCompensationStep.denominator
+                }
+                ExposureLevel.LIGHT_STEP -> {
+                    cameraExposureData.cameraExposureCompensationIndex + cameraExposureData.cameraExposureCompensationStep.denominator
+                }
+                else -> 0
+            }
+            this.camera?.cameraControl?.setExposureCompensationIndex(exposureValue)
+            Log.d(tag, "Exposure Range set: $exposureValue")
+        }
     }
 
     @SuppressLint("UnsafeOptInUsageError")

@@ -11,6 +11,7 @@ import android.content.Context
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -50,6 +51,15 @@ class SettingsFragment : Fragment() {
 
         binding.settingsSetCameraResolutionButton.setOnClickListener {
             if (sharedViewModel.allPermissionsGranted(requireContext())) {
+                sharedViewModel.cameraSetupData.value?.setCameraExposureToValue(tag = TAG)
+                sharedViewModel.cameraSetupData.value?.logCameraExposureData(TAG)
+            } else {
+                activity?.requestPermissionsFromUser()
+            }
+        }
+
+        binding.settingsSetCameraResolutionButton.setOnClickListener {
+            if (sharedViewModel.allPermissionsGranted(requireContext())) {
                 displayCameraResolutionOptions()
             } else {
                 activity?.requestPermissionsFromUser()
@@ -78,6 +88,7 @@ class SettingsFragment : Fragment() {
         var tempCameraCharacteristics: CameraCharacteristics?
         for (cameraId in cameraManager.cameraIdList) {
             tempCameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId)
+            Log.d(TAG, "Camera Id: $cameraId")
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle(getString(R.string.raw_test_title, cameraId))
                 .setMessage(
@@ -108,10 +119,10 @@ class SettingsFragment : Fragment() {
             ) { dialog, which ->
                 // Respond to item chosen
             }
-            .setNeutralButton(resources.getString(android.R.string.cancel)) { dialog, _ ->
+            .setNeutralButton(android.R.string.cancel) { dialog, _ ->
                 dialog.dismiss()
             }
-            .setPositiveButton(resources.getString(android.R.string.ok)) { dialog, which ->
+            .setPositiveButton(android.R.string.ok) { dialog, which ->
                 // TODO: Update the Shared viewmodel
 
             }

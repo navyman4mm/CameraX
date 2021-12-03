@@ -12,23 +12,25 @@
     android:layout_margin="@dimen/dimen_common_margin"
     tools:context=".ui.SettingsFragment">
 
-    <TextView
-        android:id="@+id/settingsTitle"
-        android:layout_width="match_parent"
+    <Button
+        android:id="@+id/settingsResetCameraExposureButton"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/fragment_label_settings"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        android:text="@string/reset_camera_exposure_label"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/settingsSetCameraResolutionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/dimen_common_margin"
         android:text="@string/set_camera_resolution_label"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/settingsTitle" />
+        app:layout_constraintTop_toBottomOf="@+id/settingsResetCameraExposureButton" />
 
     <Button
         android:id="@+id/settingsRawSupportTestButton"

@@ -14,6 +14,9 @@ import android.view.View
  * @author Daniel Randall on 2021-11-17.
  */
 
+const val APP_PACKAGE = "com.digital_tectonics.spacetrader"
+const val APP_STORE_URL = "https://play.google.com/store/apps/details?id=$APP_PACKAGE"
+
 /**
  * Combination of all flags required to put activity into immersive mode
  */
