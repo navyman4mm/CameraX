@@ -36,3 +36,10 @@ const val JPG_FILE_TAG = ".jpg"
 const val PNG_FILE_TAG = ".png"
 
 const val IMAGE_CAPTURE_TAG = "IMAGE_CAPTURE"
+
+/* Auto Fucus Testing */
+const val FLOAT_HALF = 0.5F
+const val FLOAT_ONE = 1F
+
+const val AUTO_FOCUS_INTERVAL = 2L
+
