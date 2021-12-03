@@ -2,6 +2,7 @@ package com.digital_tectonics.cameraxextreme
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.digital_tectonics.cameraxextreme.constant.APP_PACKAGE
 
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,6 +20,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.digital_tectonics.cameraxextreme", appContext.packageName)
+        assertEquals(APP_PACKAGE, appContext.packageName)
     }
 }

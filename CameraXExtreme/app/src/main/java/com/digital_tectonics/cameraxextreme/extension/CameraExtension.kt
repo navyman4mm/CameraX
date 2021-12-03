@@ -211,10 +211,7 @@ fun ImageCapture?.logCameraExposureData(tag: String = IMAGE_CAPTURE_TAG): Camera
                 Log.d(tag, "Camera ExposureCompensationIndex: ${this.exposureCompensationIndex}")
                 Log.d(tag, "Camera ExposureCompensationRange: ${this.exposureCompensationRange}")
                 Log.d(tag, "Camera ExposureCompensationStep: ${this.exposureCompensationStep}")
-                Log.d(
-                    tag,
-                    "Camera ExposureCompensationSupported: ${this.isExposureCompensationSupported}"
-                )
+                Log.d(tag, "Camera ExposureCompensationSupported: ${this.isExposureCompensationSupported}")
             }
             cameraExposureData
         }

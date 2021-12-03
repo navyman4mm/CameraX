@@ -23,6 +23,7 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
+import com.digital_tectonics.cameraxextreme.constant.ExposureLevel
 import com.digital_tectonics.cameraxextreme.constant.FILENAME_FORMAT
 import com.digital_tectonics.cameraxextreme.constant.JPG_FILE_TAG
 import com.digital_tectonics.cameraxextreme.extension.*
@@ -74,13 +75,22 @@ class CaptureFragment : Fragment() {
                         .setItems(this.asArray(resources)) { dialog, which ->
                             // TODO: Allow for updates or settings?
                         }
+                        .setPositiveButton(R.string.exposure_step_up_) { _, _ ->
+                            sharedViewModel.cameraSetupData.value?.setCameraExposureToValue(ExposureLevel.LIGHT_STEP)
+                        }
+                        .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+                            dialog.dismiss()
+                        }
+                        .setNeutralButton(R.string.exposure_step_down) { _, _ ->
+                            sharedViewModel.cameraSetupData.value?.setCameraExposureToValue(ExposureLevel.LIGHT_STEP)
+                        }
                         .show()
                 }
 
                 true
             }
             R.id.action_exposure_max -> {
-                cameraSetup.imageCapture.setCameraExposureToMax(TAG)
+                sharedViewModel.cameraSetupData.value?.setCameraExposureToValue(ExposureLevel.LIGHT_MAX)
                 true
             }
             else -> super.onOptionsItemSelected(item)
