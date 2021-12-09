@@ -7,9 +7,7 @@
 package com.digital_tectonics.cameraxextreme.model
 
 import android.annotation.SuppressLint
-import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
-import android.hardware.camera2.params.StreamConfigurationMap
 import android.util.Log
 import androidx.camera.camera2.interop.Camera2CameraInfo
 import androidx.camera.core.Camera
@@ -55,21 +53,31 @@ data class CameraXSetupData(
         return cameraExposureData
     }
 
+    /**
+     * Set the Camera Instance to the
+     */
     @SuppressLint("UnsafeOptInUsageError")
     fun setCameraExposureToValue(
-        exposureLevel: ExposureLevel = ExposureLevel.NETURAL,
+        exposureLevel: ExposureLevel = ExposureLevel.NETURAL_EV,
         tag: String = IMAGE_CAPTURE_TAG,
     ) {
         val cameraExposureData = this.logCameraExposureData(tag)
         if (cameraExposureData != null && cameraExposureData.cameraExposureCompensationSupported) {
+            // TODO: Make this when smaller
             val exposureValue = when (exposureLevel) {
-                ExposureLevel.DARK_MAX -> cameraExposureData.cameraExposureCompensationRange.lower
-                ExposureLevel.LIGHT_MAX -> cameraExposureData.cameraExposureCompensationRange.upper
-                ExposureLevel.DARK_STEP -> {
+                ExposureLevel.DARK_EV_MAX -> cameraExposureData.cameraExposureCompensationRange.lower
+                ExposureLevel.LIGHT_EV_MAX -> cameraExposureData.cameraExposureCompensationRange.upper
+                ExposureLevel.DARK_WHOLE_EV -> {
                     cameraExposureData.cameraExposureCompensationIndex - cameraExposureData.cameraExposureCompensationStep.denominator
                 }
-                ExposureLevel.LIGHT_STEP -> {
+                ExposureLevel.LIGHT_WHOLE_EV -> {
                     cameraExposureData.cameraExposureCompensationIndex + cameraExposureData.cameraExposureCompensationStep.denominator
+                }
+                ExposureLevel.DARK_EV_STEP -> {
+                    cameraExposureData.cameraExposureCompensationIndex - cameraExposureData.cameraExposureCompensationStep.numerator
+                }
+                ExposureLevel.LIGHT_EV_STEP -> {
+                    cameraExposureData.cameraExposureCompensationIndex + cameraExposureData.cameraExposureCompensationStep.numerator
                 }
                 else -> 0
             }

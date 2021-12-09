@@ -86,19 +86,25 @@ class SettingsFragment : Fragment() {
             activity?.applicationContext?.getSystemService(Context.CAMERA_SERVICE) as CameraManager
 
         var tempCameraCharacteristics: CameraCharacteristics?
+        val cameraSupportList = arrayListOf<String>()
         for (cameraId in cameraManager.cameraIdList) {
             tempCameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId)
             Log.d(TAG, "Camera Id: $cameraId")
-            MaterialAlertDialogBuilder(requireContext())
-                .setTitle(getString(R.string.raw_test_title, cameraId))
-                .setMessage(
-                    "Supports RAW: ${
-                        tempCameraCharacteristics.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES)
-                            ?.contains(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_RAW)
-                    }"
-                )
-                .show()
+            cameraSupportList.add(
+                cameraId.toInt(),
+                "Camera $cameraId Supports RAW: ${
+                    tempCameraCharacteristics.get(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES)
+                        ?.contains(CameraCharacteristics.REQUEST_AVAILABLE_CAPABILITIES_RAW) ?: false
+                }"
+            )
         }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.raw_support_test_title)
+            // TODO: Find a better way to handle this conversion
+            .setItems(cameraSupportList.toArray(arrayOf<CharSequence>())) { dialog, which ->
+                Unit
+            }
+            .show()
     }
 
     private fun displayCameraResolutionOptions() {

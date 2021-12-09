@@ -76,13 +76,13 @@ class CaptureFragment : Fragment() {
                             // TODO: Allow for updates or settings?
                         }
                         .setPositiveButton(R.string.exposure_step_up_) { _, _ ->
-                            sharedViewModel.cameraSetupData.value?.setCameraExposureToValue(ExposureLevel.LIGHT_STEP)
+                            sharedViewModel.cameraSetupData.value?.setCameraExposureToValue(ExposureLevel.LIGHT_EV_STEP)
                         }
                         .setNegativeButton(android.R.string.cancel) { dialog, _ ->
                             dialog.dismiss()
                         }
                         .setNeutralButton(R.string.exposure_step_down) { _, _ ->
-                            sharedViewModel.cameraSetupData.value?.setCameraExposureToValue(ExposureLevel.LIGHT_STEP)
+                            sharedViewModel.cameraSetupData.value?.setCameraExposureToValue(ExposureLevel.DARK_EV_STEP)
                         }
                         .show()
                 }
@@ -90,7 +90,7 @@ class CaptureFragment : Fragment() {
                 true
             }
             R.id.action_exposure_max -> {
-                sharedViewModel.cameraSetupData.value?.setCameraExposureToValue(ExposureLevel.LIGHT_MAX)
+                sharedViewModel.cameraSetupData.value?.setCameraExposureToValue(ExposureLevel.LIGHT_EV_MAX)
                 true
             }
             else -> super.onOptionsItemSelected(item)
