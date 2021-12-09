@@ -25,6 +25,7 @@
     <!-- Settings -->
     <string name="reset_camera_exposure_label">Reset Camera Exposure</string>
     <string name="set_camera_resolution_label">Set Camera Resolution</string>
+    <string name="raw_support_test_title">RAW Camera Support Data</string>
     <string name="raw_test_title">RAW Camera: %s</string>
     <string name="raw_test_label">Validate Raw Support</string>
 </resources>
