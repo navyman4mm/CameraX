@@ -13,6 +13,11 @@
         android:title=""
         app:showAsAction="always" />
     <item
+        android:id="@+id/action_timed_exposure"
+        android:icon="@drawable/ic_camera_shutter_24dp"
+        android:orderInCategory="100"
+        android:title="@string/timed_exposure" />
+    <item
         android:id="@+id/action_info"
         android:icon="@drawable/ic_help_outline_24dp"
         android:orderInCategory="100"

@@ -8,8 +8,6 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
-    <string name="hello_first_fragment">Hello first fragment</string>
-    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <!-- Capture Strings -->
     <string name="photo_taken_action">Photo Taken</string>
     <string name="take_photo_button">Take Photo</string>
@@ -22,6 +20,9 @@
 
     <string name="exposure_step_up_">Step Up</string>
     <string name="exposure_step_down">Step Down</string>
+    <!-- UI -->
+    <string name="timed_exposure">Timed Exposure</string>
+    <string name="set_exposure_time">Set Exposure Time</string>
     <!-- Settings -->
     <string name="reset_camera_exposure_label">Reset Camera Exposure</string>
     <string name="set_camera_resolution_label">Set Camera Resolution</string>

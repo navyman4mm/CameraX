@@ -7,6 +7,10 @@
 package com.digital_tectonics.cameraxextreme.ui
 
 import android.annotation.SuppressLint
+import android.hardware.camera2.CameraCaptureSession
+import android.hardware.camera2.CaptureRequest
+import android.hardware.camera2.CaptureResult
+import android.hardware.camera2.TotalCaptureResult
 import android.os.Bundle
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -19,6 +23,7 @@ import android.net.Uri
 import android.util.Log
 import android.view.*
 import android.widget.Toast
+import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.view.isVisible
@@ -50,6 +55,8 @@ class CaptureFragment : Fragment() {
     private var isFirstResume: Boolean = true
     private var isCameraAvailable: Boolean = false
 
+    private val FRAME_DURATION_DEFAULT = 4L
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -66,6 +73,23 @@ class CaptureFragment : Fragment() {
     @SuppressLint("RestrictedApi", "UnsafeOptInUsageError")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.action_timed_exposure -> {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.timed_exposure)
+                    .setPositiveButton(R.string.set_exposure_time) { _, _ ->
+                        sharedViewModel.cameraSetupData.value?.setExactExposureTime()
+                    }
+                    .setNegativeButton(android.R.string.cancel) { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .show()
+
+                true
+            }
+            R.id.action_exposure_max -> {
+                sharedViewModel.cameraSetupData.value?.setCameraExposureToValue(ExposureLevel.LIGHT_EV_MAX)
+                true
+            }
             R.id.action_info -> {
                 val cameraExposureData = cameraSetup.logCameraExposureData(TAG)
 
@@ -87,10 +111,6 @@ class CaptureFragment : Fragment() {
                         .show()
                 }
 
-                true
-            }
-            R.id.action_exposure_max -> {
-                sharedViewModel.cameraSetupData.value?.setCameraExposureToValue(ExposureLevel.LIGHT_EV_MAX)
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -204,6 +224,7 @@ class CaptureFragment : Fragment() {
                 this,
                 this@CaptureFragment,
                 { data: CameraXSetupData -> sharedViewModel.setupCameraXData(data) },
+                cameraExecutor = cameraExecutor,
             )
         }
     }
@@ -246,5 +267,29 @@ class CaptureFragment : Fragment() {
                 Log.e(TAG, "Use case binding failed", exception)
             }
         }, ContextCompat.getMainExecutor(requireContext()))
+    }
+
+
+
+    private fun buildImageAnalysis(): ImageAnalysis {
+        val builder = ImageAnalysis.Builder()
+        val camera2InterOp = Camera2Interop.Extender(builder)
+        camera2InterOp.setCaptureRequestOption(
+            CaptureRequest.CONTROL_AE_MODE,
+            CaptureRequest.CONTROL_AE_MODE_OFF
+        )
+        camera2InterOp.setCaptureRequestOption(
+            CaptureRequest.CONTROL_AWB_MODE,
+            CaptureRequest.CONTROL_AWB_MODE_OFF
+        )
+//        camera2InterOp.setCaptureRequestOption(
+//            CaptureRequest.SENSOR_FRAME_DURATION,
+//            FRAME_DURATION_DEFAULT
+//        )
+//        camera2InterOp.setCaptureRequestOption(
+//            CaptureRequest.SENSOR_EXPOSURE_TIME,
+//            EXPOSURE_TIME_DEFAULT
+//        )
+        return builder.build()
     }
 }

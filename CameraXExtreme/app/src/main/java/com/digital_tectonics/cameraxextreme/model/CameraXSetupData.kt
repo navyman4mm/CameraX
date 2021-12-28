@@ -8,8 +8,11 @@ package com.digital_tectonics.cameraxextreme.model
 
 import android.annotation.SuppressLint
 import android.hardware.camera2.CameraManager
+import android.hardware.camera2.CaptureRequest
 import android.util.Log
+import androidx.camera.camera2.interop.Camera2CameraControl
 import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.camera2.interop.CaptureRequestOptions
 import androidx.camera.core.Camera
 import androidx.camera.core.ImageCapture
 import com.digital_tectonics.cameraxextreme.constant.ExposureLevel
@@ -46,7 +49,10 @@ data class CameraXSetupData(
                 Log.d(tag, "Camera ExposureCompensationIndex: ${this.exposureCompensationIndex}")
                 Log.d(tag, "Camera ExposureCompensationRange: ${this.exposureCompensationRange}")
                 Log.d(tag, "Camera ExposureCompensationStep: ${this.exposureCompensationStep}")
-                Log.d(tag, "Camera ExposureCompensationSupported: ${this.isExposureCompensationSupported}")
+                Log.d(
+                    tag,
+                    "Camera ExposureCompensationSupported: ${this.isExposureCompensationSupported}"
+                )
             }
         }
 
@@ -83,6 +89,29 @@ data class CameraXSetupData(
             }
             this.camera?.cameraControl?.setExposureCompensationIndex(exposureValue)
             Log.d(tag, "Exposure Range set: $exposureValue")
+        }
+    }
+
+    /**
+     * @param exposureTime [Long] In milliseconds
+     */
+    @SuppressLint("UnsafeOptInUsageError")
+    fun setExactExposureTime(exposureTime: Long = 30L) {
+        val exposureTimeNanoSeconds = exposureTime * 1_000_000L // Milliseconds -> Nano
+        camera?.cameraControl?.run {
+            Camera2CameraControl.from(this).setCaptureRequestOptions(
+                CaptureRequestOptions.Builder()
+                    .setCaptureRequestOption(
+                        CaptureRequest.CONTROL_AE_MODE,
+                        CaptureRequest.CONTROL_AE_MODE_OFF
+                    )
+//                    .setCaptureRequestOption(
+//                        CaptureRequest.CONTROL_AWB_MODE,
+//                        CaptureRequest.CONTROL_AWB_MODE_OFF
+//                    )
+                    .setCaptureRequestOption(CaptureRequest.SENSOR_EXPOSURE_TIME, exposureTimeNanoSeconds)
+                    .build()
+            )
         }
     }
 

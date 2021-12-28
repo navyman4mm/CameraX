@@ -10,8 +10,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraManager
+import android.hardware.camera2.*
 import android.hardware.camera2.params.StreamConfigurationMap
 import android.os.Build
 import android.util.Log
@@ -20,6 +19,7 @@ import android.view.OrientationEventListener
 import android.view.Surface
 import androidx.annotation.RequiresApi
 import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.camera2.interop.Camera2Interop
 import androidx.camera.core.*
 import androidx.camera.core.ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -32,6 +32,8 @@ import com.digital_tectonics.cameraxextreme.constant.FLOAT_ONE
 import com.digital_tectonics.cameraxextreme.constant.IMAGE_CAPTURE_TAG
 import com.digital_tectonics.cameraxextreme.model.CameraExposureData
 import com.digital_tectonics.cameraxextreme.model.CameraXSetupData
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 /**
@@ -50,6 +52,7 @@ fun Context?.startCameraAndPreview(
     updateMethod: (CameraXSetupData) -> Unit,
     imageCapture: ImageCapture = ImageCapture.Builder()
         .setCaptureMode(CAPTURE_MODE_MAXIMIZE_QUALITY).build(),
+    cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor(),
 ): CameraXSetupData {
     return startCameraAndPreview(
         captureViewFinder,
@@ -57,6 +60,7 @@ fun Context?.startCameraAndPreview(
         updateMethod,
         imageCapture,
         isAutoFocusEnabled = false,
+        cameraExecutor = cameraExecutor
     )
 }
 
@@ -72,6 +76,7 @@ fun Context?.startCameraAndPreview(
         .setCaptureMode(CAPTURE_MODE_MAXIMIZE_QUALITY).build(),
     isAutoFocusEnabled: Boolean = true,
     autoFocusInterval: Long = AUTO_FOCUS_INTERVAL,
+    cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor(),
 ): CameraXSetupData {
     if (this != null) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
@@ -111,6 +116,9 @@ fun Context?.startCameraAndPreview(
                     lifecycleOwner,
                     CameraSelector.DEFAULT_BACK_CAMERA,
                     preview,
+                    getCameraSessionData().also {
+                        it.setAnalyzer(cameraExecutor, ImageAnalysis.Analyzer { })
+                    },
                     imageCapture,
                 )
 
@@ -129,13 +137,14 @@ fun Context?.startCameraAndPreview(
                             SurfaceOrientedMeteringPointFactory(FLOAT_ONE, FLOAT_ONE)
                                 .createPoint(FLOAT_HALF, FLOAT_HALF)
                         try {
-                            camera.cameraControl.startFocusAndMetering(FocusMeteringAction.Builder(
-                                autoFocusPoint,
-                                FocusMeteringAction.FLAG_AF
-                            ).apply {
-                                // Start auto-focusing after 2 seconds
-                                setAutoCancelDuration(autoFocusInterval, TimeUnit.SECONDS)
-                            }.build()
+                            camera.cameraControl.startFocusAndMetering(
+                                FocusMeteringAction.Builder(
+                                    autoFocusPoint,
+                                    FocusMeteringAction.FLAG_AF
+                                ).apply {
+                                    // Start auto-focusing after 2 seconds
+                                    setAutoCancelDuration(autoFocusInterval, TimeUnit.SECONDS)
+                                }.build()
                             )
                         } catch (exception: CameraInfoUnavailableException) {
                             Log.d(lifecycleOwner.toString(), "Camera not available", exception)
@@ -211,7 +220,10 @@ fun ImageCapture?.logCameraExposureData(tag: String = IMAGE_CAPTURE_TAG): Camera
                 Log.d(tag, "Camera ExposureCompensationIndex: ${this.exposureCompensationIndex}")
                 Log.d(tag, "Camera ExposureCompensationRange: ${this.exposureCompensationRange}")
                 Log.d(tag, "Camera ExposureCompensationStep: ${this.exposureCompensationStep}")
-                Log.d(tag, "Camera ExposureCompensationSupported: ${this.isExposureCompensationSupported}")
+                Log.d(
+                    tag,
+                    "Camera ExposureCompensationSupported: ${this.isExposureCompensationSupported}"
+                )
             }
             cameraExposureData
         }
@@ -229,7 +241,10 @@ fun ImageCapture?.setCameraExposureToMax(tag: String = IMAGE_CAPTURE_TAG) {
         val cameraExposureData = this.logCameraExposureData(tag)
         if (cameraExposureData != null && cameraExposureData.cameraExposureCompensationSupported) {
             this.camera?.cameraControl?.setExposureCompensationIndex(cameraExposureData.cameraExposureCompensationRange.upper)
-            Log.d(tag, "Exposure Range set: ${cameraExposureData.cameraExposureCompensationRange.upper}")
+            Log.d(
+                tag,
+                "Exposure Range set: ${cameraExposureData.cameraExposureCompensationRange.upper}"
+            )
         }
     }
 }
@@ -245,4 +260,38 @@ private fun logHighRes(configs: StreamConfigurationMap?, tag: String = IMAGE_CAP
     imageData?.forEach {
         Log.d(tag, "YUV_420_888 available High Resolution output size: $it")
     }
+}
+
+private fun getCameraSessionData(): ImageAnalysis {
+    val builder = ImageAnalysis.Builder()
+    val camera2InterOp = Camera2Interop.Extender(builder)
+    camera2InterOp.setSessionCaptureCallback(object : CameraCaptureSession.CaptureCallback() {
+        override fun onCaptureCompleted(
+            session: CameraCaptureSession,
+            request: CaptureRequest,
+            result: TotalCaptureResult
+        ) {
+            Log.d(
+                "Camera2Interop",
+                "CaptureRequest.SENSOR_EXPOSURE_TIME = ${result.get(CaptureResult.SENSOR_EXPOSURE_TIME)}"
+            )
+            Log.d(
+                "Camera2Interop",
+                "CaptureRequest.SENSOR_FRAME_DURATION = ${result.get(CaptureResult.SENSOR_FRAME_DURATION)}"
+            )
+            super.onCaptureCompleted(session, request, result)
+        }
+
+        override fun onCaptureStarted(
+            session: CameraCaptureSession,
+            request: CaptureRequest,
+            timestamp: Long,
+            frameNumber: Long
+        ) {
+            Log.d("Camera2Interop", "onCaptureStarted")
+            super.onCaptureStarted(session, request, timestamp, frameNumber)
+        }
+    })
+
+    return builder.build()
 }
